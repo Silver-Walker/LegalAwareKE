@@ -1,0 +1,48 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if law else 'Add' }} Law — Admin{% endblock %}
+{% block page_title %}{{ 'Edit' if law else 'Add New' }} Law{% endblock %}
+
+{% block content %}
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">{{ 'Edit: ' ~ law.title if law else 'Add New Law' }}</h2>
+        <a href="{{ url_for('admin_laws') }}" class="admin-btn">← Back to Laws</a>
+    </div>
+
+    <div class="admin-form-card">
+        <form method="POST" class="admin-form">
+
+            <div class="form-group">
+                <label for="title">Law Title <span class="required">*</span></label>
+                <input type="text" id="title" name="title"
+                       value="{{ law.title if law else '' }}"
+                       placeholder="e.g. Penal Code, Traffic Act" required>
+                <small>The full official name of the Act or Statute.</small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="year">Year Enacted</label>
+                    <input type="number" id="year" name="year"
+                           value="{{ law.year if law else '' }}"
+                           placeholder="e.g. 2010" min="1800" max="2100">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4"
+                          placeholder="Brief description of what this law covers...">{{ law.description if law else '' }}</textarea>
+                <small>Explain what offences or area of law this Act covers.</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="admin-btn admin-btn-primary">
+                    {{ '💾 Save Changes' if law else '＋ Add Law' }}
+                </button>
+                <a href="{{ url_for('admin_laws') }}" class="admin-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

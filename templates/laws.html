@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Laws & Statutes — LegalAwareKE{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="container">
+        <div class="page-hero-badge">Legal Framework</div>
+        <h1>Laws & Statutes</h1>
+        <p>Kenya's principal Acts of Parliament governing criminal offences.</p>
+    </div>
+</div>
+
+<div class="container section">
+    {% if laws %}
+    <div class="laws-grid">
+        {% for law in laws %}
+        <a href="{{ url_for('law_detail', law_id=law.id) }}" class="law-card">
+            <div class="law-card-header">
+                <span class="law-year">{{ law.year or 'N/A' }}</span>
+                <span class="law-count">{{ law.offence_count }} offence{{ 's' if law.offence_count != 1 }}</span>
+            </div>
+            <h3 class="law-title">{{ law.title }}</h3>
+            <p class="law-desc">{{ law.description or 'No description available.' }}</p>
+            <span class="law-link">View offences →</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📜</div>
+        <h3>No laws found</h3>
+        <p>No laws have been added to the system yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

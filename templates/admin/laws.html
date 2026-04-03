@@ -1,0 +1,42 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Manage Laws — Admin{% endblock %}
+{% block page_title %}Laws & Statutes{% endblock %}
+
+{% block content %}
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">All Laws ({{ laws|length }})</h2>
+        <a href="{{ url_for('admin_add_law') }}" class="admin-btn admin-btn-primary">＋ Add New Law</a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Year</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for law in laws %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ law.title }}</strong></td>
+                    <td>{{ law.year or '—' }}</td>
+                    <td class="td-desc">{{ law.description[:80] ~ '...' if law.description and law.description|length > 80 else law.description or '—' }}</td>
+                    <td class="td-actions">
+                        <a href="{{ url_for('admin_edit_law', law_id=law.id) }}" class="admin-btn admin-btn-sm">✏ Edit</a>
+                        <form method="POST" action="{{ url_for('admin_delete_law', law_id=law.id) }}" style="display:inline;" onsubmit="return confirm('Delete {{ law.title }}? This will also delete all its offences!')">
+                            <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger">🗑 Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

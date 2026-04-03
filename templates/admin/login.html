@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — LegalAwareKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Crimson+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="login-body">
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <!-- Brand -->
+        <div class="login-brand">
+            <span class="login-brand-icon">⚖</span>
+            <h1>LegalAwareKE</h1>
+            <p>Admin Panel</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="admin-flash admin-flash-{{ category }}" style="margin-bottom:1rem;">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{{ url_for('admin_login') }}" class="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn-login">Sign In →</button>
+        </form>
+
+        <div class="login-footer">
+            <a href="{{ url_for('index') }}">← Back to Public Site</a>
+        </div>
+    </div>
+
+    <!-- Decorative side -->
+    <div class="login-side">
+        <div class="login-side-content">
+            <div class="login-side-icon">⚖</div>
+            <h2>Kenya Legal<br>Awareness System</h2>
+            <p>Manage laws, offences, penalties and civic education content from one place.</p>
+            <div class="login-side-stats">
+                <div class="login-stat">📜 Laws</div>
+                <div class="login-stat">⚠ Offences</div>
+                <div class="login-stat">📚 Civic Articles</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title if article else 'Not Found' }} — LegalAwareKE{% endblock %}
+
+{% block content %}
+{% if article %}
+<div class="page-hero">
+    <div class="container">
+        <a href="{{ url_for('civic') }}" class="back-link">← Back to Civic Education</a>
+        <div class="page-hero-badge">Civic Education</div>
+        <h1>{{ article.title }}</h1>
+    </div>
+</div>
+
+<div class="container section">
+    <div class="detail-layout">
+        <div class="detail-main">
+            <div class="detail-card">
+                <p style="font-size:1.05rem;line-height:1.9;">{{ article.content }}</p>
+            </div>
+        </div>
+        <div class="detail-sidebar">
+            <div class="sidebar-card">
+                <h4>Article Info</h4>
+                {% if article.category_name %}
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Category</span>
+                    <span class="badge badge-category">{{ article.category_name }}</span>
+                </div>
+                {% endif %}
+                {% if article.law_title %}
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Related Law</span>
+                    <span class="badge badge-law">{{ article.law_title }}</span>
+                </div>
+                {% endif %}
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Added</span>
+                    <span>{{ article.created_at.strftime('%d %b %Y') if article.created_at else '—' }}</span>
+                </div>
+            </div>
+            <a href="{{ url_for('civic') }}" class="btn btn-outline" style="width:100%;text-align:center;">← All Articles</a>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="container section">
+    <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3>Article Not Found</h3>
+        <a href="{{ url_for('civic') }}" class="btn btn-primary">Back to Civic Education</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

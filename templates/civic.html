@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Civic Education — LegalAwareKE{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="container">
+        <div class="page-hero-badge">Know Your Rights</div>
+        <h1>Civic Education</h1>
+        <p>Educational articles on citizens' rights, legal processes, and civic responsibilities in Kenya.</p>
+    </div>
+</div>
+
+<div class="container section">
+    {% if articles %}
+    <div class="civic-grid">
+        {% for article in articles %}
+        <a href="{{ url_for('civic_detail', article_id=article.id) }}" class="civic-card">
+            <div class="civic-meta">
+                {% if article.category_name %}<span class="badge badge-category">{{ article.category_name }}</span>{% endif %}
+                {% if article.law_title %}<span class="badge badge-law">{{ article.law_title }}</span>{% endif %}
+            </div>
+            <h3>{{ article.title }}</h3>
+            <p>{{ article.content[:150] }}...</p>
+            <span class="civic-link">Read more</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3>No articles found</h3>
+        <p>No civic education articles have been added yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

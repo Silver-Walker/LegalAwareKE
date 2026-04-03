@@ -1,0 +1,46 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Manage Offences — Admin{% endblock %}
+{% block page_title %}Criminal Offences{% endblock %}
+
+{% block content %}
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">All Offences ({{ offences|length }})</h2>
+        <a href="{{ url_for('admin_add_offence') }}" class="admin-btn admin-btn-primary">＋ Add New Offence</a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Offence</th>
+                    <th>Law</th>
+                    <th>Section</th>
+                    <th>Category</th>
+                    <th>Penalty</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in offences %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ o.title }}</strong></td>
+                    <td><span class="admin-badge">{{ o.law_title or '—' }}</span></td>
+                    <td>{{ o.section_number or '—' }}</td>
+                    <td>{{ o.category_name or '—' }}</td>
+                    <td class="td-desc" style="color:#b91c1c;">{{ o.penalty[:60] ~ '...' if o.penalty|length > 60 else o.penalty }}</td>
+                    <td class="td-actions">
+                        <a href="{{ url_for('admin_edit_offence', offence_id=o.id) }}" class="admin-btn admin-btn-sm">✏ Edit</a>
+                        <form method="POST" action="{{ url_for('admin_delete_offence', offence_id=o.id) }}" style="display:inline;" onsubmit="return confirm('Delete {{ o.title }}?')">
+                            <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger">🗑</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

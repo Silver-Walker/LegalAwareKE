@@ -1,0 +1,77 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if offence else 'Add' }} Offence — Admin{% endblock %}
+{% block page_title %}{{ 'Edit' if offence else 'Add New' }} Offence{% endblock %}
+
+{% block content %}
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">{{ 'Edit: ' ~ offence.title if offence else 'Add New Offence' }}</h2>
+        <a href="{{ url_for('admin_offences') }}" class="admin-btn">← Back to Offences</a>
+    </div>
+
+    <div class="admin-form-card">
+        <form method="POST" class="admin-form">
+
+            <div class="form-group">
+                <label for="title">Offence Title <span class="required">*</span></label>
+                <input type="text" id="title" name="title"
+                       value="{{ offence.title if offence else '' }}"
+                       placeholder="e.g. Theft, Murder, Cyberstalking" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="law_id">Law / Statute</label>
+                    <select id="law_id" name="law_id">
+                        <option value="">— Select Law —</option>
+                        {% for law in laws %}
+                        <option value="{{ law.id }}" {{ 'selected' if offence and offence.law_id == law.id }}>
+                            {{ law.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="category_id">Category</label>
+                    <select id="category_id" name="category_id">
+                        <option value="">— Select Category —</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {{ 'selected' if offence and offence.category_id == cat.id }}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="section_number">Section Number</label>
+                <input type="text" id="section_number" name="section_number"
+                       value="{{ offence.section_number if offence else '' }}"
+                       placeholder="e.g. Section 275">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description <span class="required">*</span></label>
+                <textarea id="description" name="description" rows="5"
+                          placeholder="Full description of what this offence involves..." required>{{ offence.description if offence else '' }}</textarea>
+                <small>Be detailed — this is what citizens will read to understand the offence.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="penalty">Penalty <span class="required">*</span></label>
+                <textarea id="penalty" name="penalty" rows="3"
+                          placeholder="e.g. Up to 10 years imprisonment or a fine not exceeding KSh 1,000,000" required>{{ offence.penalty if offence else '' }}</textarea>
+                <small>Include imprisonment duration, fine amounts, and any special conditions.</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="admin-btn admin-btn-primary">
+                    {{ '💾 Save Changes' if offence else '＋ Add Offence' }}
+                </button>
+                <a href="{{ url_for('admin_offences') }}" class="admin-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

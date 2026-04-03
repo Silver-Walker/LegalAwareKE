@@ -1,0 +1,46 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Manage Civic Education — Admin{% endblock %}
+{% block page_title %}Civic Education{% endblock %}
+
+{% block content %}
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">All Articles ({{ articles|length }})</h2>
+        <a href="{{ url_for('admin_add_civic') }}" class="admin-btn admin-btn-primary">＋ Add New Article</a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Related Law</th>
+                    <th>Date Added</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <strong>{{ article.title }}</strong>
+                        <div class="td-preview">{{ article.content[:100] }}...</div>
+                    </td>
+                    <td>{{ article.law_title or '—' }}</td>
+                    <td>{{ article.created_at.strftime('%d %b %Y') if article.created_at else '—' }}</td>
+                    <td class="td-actions">
+                        <a href="{{ url_for('civic_detail', article_id=article.id) }}" class="admin-btn admin-btn-sm" target="_blank">👁 View</a>
+                        <a href="{{ url_for('admin_edit_civic', article_id=article.id) }}" class="admin-btn admin-btn-sm">✏ Edit</a>
+                        <form method="POST" action="{{ url_for('admin_delete_civic', article_id=article.id) }}" style="display:inline;" onsubmit="return confirm('Delete this article?')">
+                            <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger">🗑</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

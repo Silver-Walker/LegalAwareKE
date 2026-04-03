@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ offence.title if offence else 'Not Found' }} — LegalAwareKE{% endblock %}
+
+{% block content %}
+{% if offence %}
+<div class="page-hero">
+    <div class="container">
+        <a href="{{ url_for('offences') }}" class="back-link">← Back to Offences</a>
+        <div class="page-hero-badge">Criminal Offence</div>
+        <h1>{{ offence.title }}</h1>
+    </div>
+</div>
+
+<div class="container section">
+    <div class="detail-layout">
+
+        <!-- Main Info -->
+        <div class="detail-main">
+            <div class="detail-card">
+                <h3>Description</h3>
+                <p>{{ offence.description }}</p>
+            </div>
+            <div class="detail-card detail-card-penalty">
+                <h3>⚖ Penalty</h3>
+                <p class="penalty-text">{{ offence.penalty }}</p>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="detail-sidebar">
+            <div class="sidebar-card">
+                <h4>Details</h4>
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Law</span>
+                    <span class="badge badge-law">{{ offence.law_title or 'N/A' }}</span>
+                </div>
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Year</span>
+                    <span>{{ offence.law_year or '—' }}</span>
+                </div>
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Section</span>
+                    <span class="badge badge-section">{{ offence.section_number or '—' }}</span>
+                </div>
+                <div class="sidebar-row">
+                    <span class="sidebar-label">Category</span>
+                    <span class="badge badge-category">{{ offence.category_name or '—' }}</span>
+                </div>
+            </div>
+
+            <a href="{{ url_for('offences') }}" class="btn btn-outline" style="width:100%;text-align:center;">← All Offences</a>
+            <a href="{{ url_for('laws') }}" class="btn btn-outline" style="width:100%;text-align:center;margin-top:0.5rem;">📜 View Laws</a>
+        </div>
+
+    </div>
+</div>
+
+{% else %}
+<div class="container section">
+    <div class="empty-state">
+        <div class="empty-icon">⚠</div>
+        <h3>Offence Not Found</h3>
+        <p>The offence you are looking for does not exist.</p>
+        <a href="{{ url_for('offences') }}" class="btn btn-primary">Back to Offences</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Dashboard — Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stats Row -->
+<div class="admin-stats-grid">
+    <div class="admin-stat-card">
+        <div class="admin-stat-icon" style="background:rgba(201,168,76,0.15);color:#c9a84c;">📜</div>
+        <div class="admin-stat-info">
+            <div class="admin-stat-number">{{ total_laws }}</div>
+            <div class="admin-stat-label">Laws & Statutes</div>
+        </div>
+        <a href="{{ url_for('admin_laws') }}" class="admin-stat-link">Manage →</a>
+    </div>
+    <div class="admin-stat-card">
+        <div class="admin-stat-icon" style="background:rgba(185,28,28,0.12);color:#b91c1c;">⚠</div>
+        <div class="admin-stat-info">
+            <div class="admin-stat-number">{{ total_offences }}</div>
+            <div class="admin-stat-label">Criminal Offences</div>
+        </div>
+        <a href="{{ url_for('admin_offences') }}" class="admin-stat-link">Manage →</a>
+    </div>
+    <div class="admin-stat-card">
+        <div class="admin-stat-icon" style="background:rgba(13,27,42,0.12);color:#1b2e45;">📚</div>
+        <div class="admin-stat-info">
+            <div class="admin-stat-number">{{ total_civic }}</div>
+            <div class="admin-stat-label">Civic Articles</div>
+        </div>
+        <a href="{{ url_for('admin_civic') }}" class="admin-stat-link">Manage →</a>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="admin-section">
+    <h2 class="admin-section-title">Quick Actions</h2>
+    <div class="quick-actions-grid">
+        <a href="{{ url_for('admin_add_law') }}" class="quick-action-card">
+            <span class="qa-icon">＋</span>
+            <span class="qa-label">Add New Law</span>
+        </a>
+        <a href="{{ url_for('admin_add_offence') }}" class="quick-action-card">
+            <span class="qa-icon">＋</span>
+            <span class="qa-label">Add New Offence</span>
+        </a>
+        <a href="{{ url_for('admin_add_civic') }}" class="quick-action-card">
+            <span class="qa-icon">＋</span>
+            <span class="qa-label">Add Civic Article</span>
+        </a>
+        <a href="{{ url_for('index') }}" class="quick-action-card" target="_blank">
+            <span class="qa-icon">🌐</span>
+            <span class="qa-label">View Public Site</span>
+        </a>
+    </div>
+</div>
+
+<!-- Recent Laws -->
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">Recent Laws</h2>
+        <a href="{{ url_for('admin_laws') }}" class="admin-view-all">View All →</a>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Year</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for law in recent_laws %}
+                <tr>
+                    <td><strong>{{ law.title }}</strong></td>
+                    <td>{{ law.year or '—' }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_edit_law', law_id=law.id) }}" class="admin-btn admin-btn-sm">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Offences -->
+<div class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">Recent Offences</h2>
+        <a href="{{ url_for('admin_offences') }}" class="admin-view-all">View All →</a>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Offence</th>
+                    <th>Law</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in recent_offences %}
+                <tr>
+                    <td><strong>{{ o.title }}</strong></td>
+                    <td>{{ o.law_title or '—' }}</td>
+                    <td>{{ o.category_name or '—' }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_edit_offence', offence_id=o.id) }}" class="admin-btn admin-btn-sm">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin — LegalAwareKE{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Crimson+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body">
+
+{% if session.admin_id %}
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <img src="{{ url_for('static', filename='images/law icon.png') }}" alt="LegalAwareKE" class="brand-icon">
+        <div>
+            <div class="sidebar-brand-text">LegalAwareKE</div>
+            <div class="sidebar-brand-sub">Admin Panel</div>
+        </div>
+    </div>
+
+    <div class="sidebar-admin-info">
+        <div class="admin-avatar">{{ session.admin_username[0].upper() }}</div>
+        <div>
+            <div class="admin-name">{{ session.admin_username }}</div>
+            <div class="admin-role">Administrator</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-nav-label">Main</div>
+        <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+            <span class="sidebar-icon">📊</span> Dashboard
+        </a>
+
+        <div class="sidebar-nav-label">Manage</div>
+        <a href="{{ url_for('admin_laws') }}" class="sidebar-link {% if 'law' in request.endpoint %}active{% endif %}">
+            <span class="sidebar-icon">📜</span> Laws & Statutes
+        </a>
+        <a href="{{ url_for('admin_offences') }}" class="sidebar-link {% if 'offence' in request.endpoint %}active{% endif %}">
+            <span class="sidebar-icon">⚠</span> Offences
+        </a>
+        <a href="{{ url_for('admin_civic') }}" class="sidebar-link {% if 'civic' in request.endpoint %}active{% endif %}">
+            <span class="sidebar-icon">📚</span> Civic Education
+        </a>
+
+        <div class="sidebar-nav-label">Site</div>
+        <a href="{{ url_for('index') }}" class="sidebar-link" target="_blank">
+            <span class="sidebar-icon">🌐</span> View Public Site
+        </a>
+        <a href="{{ url_for('admin_logout') }}" class="sidebar-link sidebar-link-danger">
+            <span class="sidebar-icon">🚪</span> Logout
+        </a>
+    </nav>
+</aside>
+
+<!-- Main Admin Content -->
+<div class="admin-main">
+    <!-- Top bar -->
+    <header class="admin-topbar">
+        <div class="admin-topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+        <div class="admin-topbar-right">
+            <span class="admin-topbar-time" id="adminTime"></span>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="admin-flash-container">
+            {% for category, message in messages %}
+            <div class="admin-flash admin-flash-{{ category }}">
+                {{ message }}
+                <button onclick="this.parentElement.remove()" class="flash-close">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="admin-content">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+{% else %}
+    {% block auth_content %}{% endblock %}
+{% endif %}
+
+<script>
+    // Live clock
+    function updateTime() {
+        const el = document.getElementById('adminTime');
+        if (el) el.textContent = new Date().toLocaleString('en-KE', {
+            weekday: 'short', day: 'numeric', month: 'short',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Auto dismiss flashes
+    document.querySelectorAll('.admin-flash').forEach(f => {
+        setTimeout(() => { f.style.opacity = '0'; setTimeout(() => f.remove(), 400); }, 4000);
+    });
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

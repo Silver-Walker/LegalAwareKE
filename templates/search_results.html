@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Search Results — LegalAwareKE{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="container">
+        <div class="page-hero-badge">Search</div>
+        <h1>Search Results</h1>
+        {% if query %}<p>Showing results for: <strong>"{{ query }}"</strong></p>{% endif %}
+    </div>
+</div>
+
+<div class="container section">
+
+    {% if query %}
+        {% set total = results.offences|length + results.laws|length + results.civic|length %}
+        <p class="results-summary">{{ total }} result{{ 's' if total != 1 }} found</p>
+
+        <!-- Offences -->
+        {% if results.offences %}
+        <div class="results-group">
+            <h2 class="results-group-title">⚠ Criminal Offences ({{ results.offences|length }})</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Offence</th><th>Law</th><th>Category</th><th>Penalty</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for o in results.offences %}
+                    <tr>
+                        <td><strong>{{ o.title }}</strong></td>
+                        <td><span class="badge badge-law">{{ o.law_title or 'N/A' }}</span></td>
+                        <td>{{ o.category_name or '—' }}</td>
+                        <td class="penalty-cell">{{ o.penalty }}</td>
+                        <td><a href="{{ url_for('offence_detail', offence_id=o.id) }}" class="btn btn-sm">View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Laws -->
+        {% if results.laws %}
+        <div class="results-group">
+            <h2 class="results-group-title">📜 Laws & Statutes ({{ results.laws|length }})</h2>
+            <div class="laws-grid">
+                {% for law in results.laws %}
+                <a href="{{ url_for('law_detail', law_id=law.id) }}" class="law-card">
+                    <div class="law-card-header">
+                        <span class="law-year">{{ law.year or 'N/A' }}</span>
+                    </div>
+                    <h3 class="law-title">{{ law.title }}</h3>
+                    <p class="law-desc">{{ law.description or '' }}</p>
+                    <span class="law-link">View →</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Civic -->
+        {% if results.civic %}
+        <div class="results-group">
+            <h2 class="results-group-title">📚 Civic Education ({{ results.civic|length }})</h2>
+            <div class="civic-grid">
+                {% for article in results.civic %}
+                <a href="{{ url_for('civic_detail', article_id=article.id) }}" class="civic-card">
+                    <h3>{{ article.title }}</h3>
+                    <p>{{ article.content[:120] }}...</p>
+                    <span class="civic-link">Read more →</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if total == 0 %}
+        <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>No results found</h3>
+            <p>Try different keywords or browse by category.</p>
+            <a href="{{ url_for('offences') }}" class="btn btn-primary">Browse Offences</a>
+        </div>
+        {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>Enter a search term</h3>
+        <p>Use the search bar above to find laws, offences, or civic articles.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

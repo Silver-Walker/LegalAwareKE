@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Categories — LegalAwareKE{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="container">
+        <div class="page-hero-badge">Classification</div>
+        <h1>Offence Categories</h1>
+        <p>Criminal offences grouped by their legal classification.</p>
+    </div>
+</div>
+
+<div class="container section">
+    {% if categories %}
+    <div class="cat-grid">
+        {% for cat in categories %}
+        <a href="{{ url_for('offences', category=cat.id) }}" class="cat-card">
+            <div class="cat-count">{{ cat.offence_count }}</div>
+            <h3>{{ cat.name }}</h3>
+            <p>{{ cat.description or 'No description available.' }}</p>
+            <span class="cat-link">View </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🗂</div>
+        <h3>No categories found</h3>
+        <p>No categories have been added yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

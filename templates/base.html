@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Legal Awareness System{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="nav-brand">
+            <img src="../static/images/law icon.png" alt="LegalAwareKE" class="brand-icon">
+            <span class="brand-text">LegalAware<span class="brand-accent">KE</span></span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+            <li><a href="{{ url_for('laws') }}" class="nav-link {% if request.endpoint == 'laws' %}active{% endif %}">Laws</a></li>
+            <li><a href="{{ url_for('offences') }}" class="nav-link {% if request.endpoint == 'offences' %}active{% endif %}">Offences</a></li>
+            <li><a href="{{ url_for('categories') }}" class="nav-link {% if request.endpoint == 'categories' %}active{% endif %}">Categories</a></li>
+            <li><a href="{{ url_for('civic') }}" class="nav-link {% if request.endpoint == 'civic' %}active{% endif %}">Civic Education</a></li>
+        </ul>
+
+        <form class="nav-search" action="{{ url_for('search') }}" method="GET">
+            <input type="text" name="q" placeholder="Search laws, offences..." value="{{ request.args.get('q', '') }}">
+            <button type="submit">Search</button>
+        </form>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                {# Keep footer icon consistent with navbar. #}
+                <img src="{{ url_for('static', filename='images/law icon.png') }}" alt="LegalAwareKE" class="brand-icon">
+                <span>LegalAwareKE</span>
+            </div>
+            <p class="footer-tagline">Empowering citizens through legal knowledge & civic awareness.</p>
+            <div class="footer-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('laws') }}">Laws</a>
+                <a href="{{ url_for('offences') }}">Offences</a>
+                <a href="{{ url_for('civic') }}">Civic Education</a>
+            </div>
+            <div class="footer-copy-row">
+                <p class="footer-copy">&copy; 2026 LegalAwareKE. All rights reserved.</p>
+                <p class="footer-copy footer-copy-right">Built with ♥ by Njuguna.</p>
+            </div>
+        </div>
+    </footer>
