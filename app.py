@@ -1,10 +1,47 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import mysql.connector
+import os
+import smtplib
+import secrets
+from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key_change_this"  # Change this in production!
+
+# Load .env file (if present) so local development picks up secrets.
+def load_local_env():
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return
+
+    with open(env_path, "r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip("'\"")
+            if key:
+                os.environ.setdefault(key, value)
+
+
+load_local_env()
+
+# 2FA settings (set these in environment variables / .env)
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", os.getenv("SMTP_PASSWORD", ""))
+ADMIN_2FA_EMAIL = os.getenv("ADMIN_2FA_EMAIL", "")
+OTP_EXPIRY_MINUTES = int(os.getenv("OTP_EXPIRY_MINUTES", "5"))
+
+# In-memory pending 2FA challenges (token -> challenge data).
+# For production deployments with multiple workers, move this to shared storage.
+PENDING_2FA = {}
 
 # ==========================
 # Database connection
@@ -28,6 +65,34 @@ def login_required(f):
             return redirect(url_for("admin_login"))
         return f(*args, **kwargs)
     return decorated
+
+
+def send_two_factor_email(recipient, code, username):
+    subject = "Your LegalAwareKE Admin Login Code"
+    body = (
+        f"Hello {username},\n\n"
+        f"Your LegalAwareKE admin verification code is: {code}\n"
+        f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
+        "If you did not request this login, you can ignore this email.\n"
+    )
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = SMTP_USER
+    msg["To"] = recipient
+    msg.set_content(body)
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASS)
+        server.send_message(msg)
+
+
+def cleanup_expired_2fa():
+    now = datetime.now(timezone.utc)
+    expired_tokens = [token for token, data in PENDING_2FA.items() if data["expires_at"] < now]
+    for token in expired_tokens:
+        PENDING_2FA.pop(token, None)
 
 
 # ==========================
@@ -165,23 +230,6 @@ def offence_detail(offence_id):
     return render_template("offence_detail.html", offence=offence)
 
 
-@app.route("/categories")
-def categories():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT c.*, COUNT(o.id) AS offence_count
-        FROM categories c
-        LEFT JOIN offences o ON o.category_id = c.id
-        GROUP BY c.id
-        ORDER BY c.name
-    """)
-    categories_list = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render_template("categories.html", categories=categories_list)
-
-
 @app.route("/civic")
 def civic():
     db = get_db()
@@ -214,6 +262,34 @@ def civic_detail(article_id):
     cursor.close()
     db.close()
     return render_template("civic_detail.html", article=article)
+
+
+@app.route("/constitution")
+def constitution():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT chapter_id, chapter_number, title, summary, articles_range
+        FROM constitution_chapters
+        ORDER BY chapter_number ASC
+    """)
+    chapters = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return render_template("constitution.html", chapters=chapters)
+
+
+@app.route("/constitution/chapter/<int:chapter_id>")
+def constitution_chapter(chapter_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM constitution_chapters WHERE chapter_id = %s", (chapter_id,))
+    chapter = cursor.fetchone()
+    cursor.close()
+    db.close()
+    if not chapter:
+        abort(404)
+    return render_template("constitution_chapter.html", chapter=chapter)
 
 
 @app.route("/search")
@@ -277,9 +353,40 @@ def api_stats():
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
+    cleanup_expired_2fa()
+
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        otp_code = request.form.get("otp_code", "").strip()
+        pending_token = session.get("pending_2fa_token")
+
+        # Step 2: Verify emailed OTP
+        if otp_code and pending_token:
+            pending = PENDING_2FA.get(pending_token)
+            if not pending:
+                session.pop("pending_2fa_token", None)
+                flash("Verification session expired. Please sign in again.", "warning")
+                return redirect(url_for("admin_login"))
+
+            if pending["expires_at"] < datetime.now(timezone.utc):
+                PENDING_2FA.pop(pending_token, None)
+                session.pop("pending_2fa_token", None)
+                flash("Verification code expired. Please sign in again.", "warning")
+                return redirect(url_for("admin_login"))
+
+            if otp_code != pending["otp_code"]:
+                flash("Invalid verification code.", "danger")
+                return render_template("admin/login.html", two_factor_required=True)
+
+            session["admin_id"] = pending["admin_id"]
+            session["admin_username"] = pending["admin_username"]
+            PENDING_2FA.pop(pending_token, None)
+            session.pop("pending_2fa_token", None)
+            flash("Welcome back, " + session["admin_username"] + "!", "success")
+            return redirect(url_for("admin_dashboard"))
+
+        # Step 1: Verify username/password and send OTP
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
 
         db = get_db()
         cursor = db.cursor(dictionary=True)
@@ -288,19 +395,49 @@ def admin_login():
         cursor.close()
         db.close()
 
-        if user and check_password_hash(user["password_hash"], password):
-            session["admin_id"] = user["id"]
-            session["admin_username"] = user["username"]
-            flash("Welcome back, " + user["username"] + "!", "success")
-            return redirect(url_for("admin_dashboard"))
-        else:
+        if not user or not check_password_hash(user["password_hash"], password):
             flash("Invalid username or password.", "danger")
+            return render_template("admin/login.html")
 
+        if not SMTP_USER or not SMTP_PASS or not ADMIN_2FA_EMAIL:
+            flash("2FA email is not configured on the server. Set SMTP_USER, SMTP_PASS and ADMIN_2FA_EMAIL.", "danger")
+            return render_template("admin/login.html")
+
+        otp_code = f"{secrets.randbelow(1_000_000):06d}"
+        token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
+        PENDING_2FA[token] = {
+            "admin_id": user["id"],
+            "admin_username": user["username"],
+            "otp_code": otp_code,
+            "expires_at": expires_at,
+        }
+        session["pending_2fa_token"] = token
+
+        try:
+            send_two_factor_email(ADMIN_2FA_EMAIL, otp_code, user["username"])
+        except Exception as e:
+            PENDING_2FA.pop(token, None)
+            session.pop("pending_2fa_token", None)
+            if app.debug:
+                flash(f"Could not send verification email: {e}", "danger")
+            else:
+                flash("Could not send verification email. Check SMTP settings and try again.", "danger")
+            return render_template("admin/login.html")
+
+        flash(f"Verification code sent to {ADMIN_2FA_EMAIL}. Enter it below.", "info")
+        return render_template("admin/login.html", two_factor_required=True)
+
+    if session.get("pending_2fa_token"):
+        return render_template("admin/login.html", two_factor_required=True)
     return render_template("admin/login.html")
 
 
 @app.route("/admin/logout")
 def admin_logout():
+    pending_token = session.get("pending_2fa_token")
+    if pending_token:
+        PENDING_2FA.pop(pending_token, None)
     session.clear()
     flash("Logged out successfully.", "info")
     return redirect(url_for("admin_login"))

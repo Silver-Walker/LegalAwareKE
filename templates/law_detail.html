@@ -5,8 +5,10 @@
 {% if law %}
 <div class="page-hero">
     <div class="container">
-        <a href="{{ url_for('laws') }}" class="back-link">← Back to Laws</a>
-        <div class="page-hero-badge">{{ law.year or 'N/A' }}</div>
+        <div class="hero-meta-row">
+            <a href="{{ url_for('laws') }}" class="back-link">← Back to Laws</a>
+            <div class="page-hero-badge">{{ law.year or 'N/A' }}</div>
+        </div>
         <h1>{{ law.title }}</h1>
         <p>{{ law.description or '' }}</p>
     </div>

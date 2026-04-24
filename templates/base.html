@@ -15,22 +15,25 @@
     <!-- Navbar -->
     <nav class="navbar">
         <a href="{{ url_for('index') }}" class="nav-brand">
-            <img src="../static/images/law icon.png" alt="LegalAwareKE" class="brand-icon">
+            <img src="{{ url_for('static', filename='images/law icon.png') }}" alt="LegalAwareKE" class="brand-icon">
             <span class="brand-text">LegalAware<span class="brand-accent">KE</span></span>
         </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle navigation">
+            ☰
+        </button>
+        <div class="nav-menu" id="primary-nav">
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                <li><a href="{{ url_for('laws') }}" class="nav-link {% if request.endpoint == 'laws' %}active{% endif %}">Laws</a></li>
+                <li><a href="{{ url_for('offences') }}" class="nav-link {% if request.endpoint == 'offences' %}active{% endif %}">Offences</a></li>
+                <li><a href="{{ url_for('civic') }}" class="nav-link {% if request.endpoint == 'civic' %}active{% endif %}">Civic Education</a></li>
+            </ul>
 
-        <ul class="nav-links">
-            <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
-            <li><a href="{{ url_for('laws') }}" class="nav-link {% if request.endpoint == 'laws' %}active{% endif %}">Laws</a></li>
-            <li><a href="{{ url_for('offences') }}" class="nav-link {% if request.endpoint == 'offences' %}active{% endif %}">Offences</a></li>
-            <li><a href="{{ url_for('categories') }}" class="nav-link {% if request.endpoint == 'categories' %}active{% endif %}">Categories</a></li>
-            <li><a href="{{ url_for('civic') }}" class="nav-link {% if request.endpoint == 'civic' %}active{% endif %}">Civic Education</a></li>
-        </ul>
-
-        <form class="nav-search" action="{{ url_for('search') }}" method="GET">
-            <input type="text" name="q" placeholder="Search laws, offences..." value="{{ request.args.get('q', '') }}">
-            <button type="submit">Search</button>
-        </form>
+            <form class="nav-search" action="{{ url_for('search') }}" method="GET">
+                <input type="text" name="q" placeholder="Search laws, offences..." value="{{ request.args.get('q', '') }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
     </nav>
 
     <!-- Flash Messages -->
@@ -64,9 +67,42 @@
                 <a href="{{ url_for('offences') }}">Offences</a>
                 <a href="{{ url_for('civic') }}">Civic Education</a>
             </div>
+            <div class="footer-references">
+                <h4>Legal References</h4>
+                <div class="footer-ref-links">
+                    <a href="https://new.kenyalaw.org/akn/ke/act/2010/constitution/eng@2010-09-03" target="_blank" rel="noopener noreferrer">The Constitution of Kenya (2010)</a>
+                    <a href="https://new.kenyalaw.org/akn/ke/act/1930/10/eng@2023-12-11" target="_blank" rel="noopener noreferrer">Penal Code</a>
+                    <a href="https://new.kenyalaw.org/akn/ke/act/1963/46" target="_blank" rel="noopener noreferrer">Evidence Act</a>
+                    <a href="https://new.kenyalaw.org/akn/ke/act/2011/11a/" target="_blank" rel="noopener noreferrer">National Police Service Act</a>
+                    <a href="https://new.kenyalaw.org/" target="_blank" rel="noopener noreferrer">More laws on Kenya Law</a>
+                </div>
+            </div>
             <div class="footer-copy-row">
                 <p class="footer-copy">&copy; 2026 LegalAwareKE. All rights reserved.</p>
                 <p class="footer-copy footer-copy-right">Built with ♥ by Njuguna.</p>
             </div>
         </div>
     </footer>
+    <script>
+        (function () {
+            const toggle = document.querySelector('.nav-toggle');
+            const menu = document.querySelector('.nav-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = function () {
+                menu.classList.remove('is-open');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.textContent = '☰';
+            };
+
+            toggle.addEventListener('click', function () {
+                const isOpen = menu.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', String(isOpen));
+                toggle.textContent = isOpen ? '✕' : '☰';
+            });
+
+            menu.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', closeMenu);
+            });
+        })();
+    </script>

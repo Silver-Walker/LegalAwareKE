@@ -18,6 +18,8 @@
     --danger:     #b91c1c;     /*color for the text and the background*/
     --success:    #15803d;     /*color for the text and the background*/
     --warning:    #b45309;     /*color for the text and the background*/
+    --black:      #111827;
+    --green:      #22c55e;
     --radius:     8px;
     --radius-lg:  14px;
     --shadow:     0 2px 12px rgba(13,27,42,0.10);
@@ -41,6 +43,17 @@ body {
 
 a { color: var(--gold); text-decoration: none; }
 a:hover { text-decoration: underline; }
+/* Consistent keyboard accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.pill:focus-visible {
+    outline: 3px solid var(--gold-light);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+}
 
 h1,h2,h3,h4 {
     font-family: 'Playfair Display', Georgia, serif;
@@ -100,6 +113,22 @@ h1,h2,h3,h4 {
     list-style: none;
     display: flex;
     gap: 0.25rem;
+}
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+.nav-toggle {
+    display: none;
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: var(--radius);
+    padding: 0.32rem 0.65rem;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
 }
 
 .nav-link {
@@ -191,6 +220,11 @@ h1,h2,h3,h4 {
     position: absolute;
     inset: 0;
 }
+.hero-bg-home {
+    background:
+        linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.75) 100%),
+        url("../images/supreme-court.jpeg") center center / cover no-repeat;
+}
 .hero-content {
     position: relative;
     z-index: 1;
@@ -252,6 +286,37 @@ h1,h2,h3,h4 {
     inset: 0;
     background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
 }
+.laws-hero {
+    background:
+        linear-gradient(120deg, rgba(13,27,42,0.55) 0%, rgba(13,27,42,0.35) 55%, rgba(13,27,42,0.62) 100%),
+        url("../images/law photo2.png") center center / cover no-repeat;
+    min-height: 280px;
+    background-position: center 38%;
+}
+.laws-hero::before {
+    background: linear-gradient(120deg, rgba(201,168,76,0.04) 0%, transparent 15%);
+}
+.offences-hero {
+    background:
+        linear-gradient(120deg, rgba(13,27,42,0.60) 0%, rgba(13,27,42,0.38) 55%, rgba(13,27,42,0.68) 100%),
+        url("../images/offences photo.png") center center / cover no-repeat;
+    min-height: 280px;
+    background-position: center 38%;
+}
+.offences-hero::before {
+    background: linear-gradient(120deg, rgba(201,168,76,0.04) 0%, transparent 20%);
+}
+.civic-hero {
+    background:
+        linear-gradient(120deg, rgba(13,27,42,0.62) 0%, rgba(13,27,42,0.44) 55%, rgba(13,27,42,0.70) 100%),
+        url("../images/civic photo.png") center center / cover no-repeat;
+    min-height: 280px;
+    background-position: center 32%;
+    image-rendering: auto;
+}
+.civic-hero::before {
+    background: linear-gradient(120deg, rgba(201,168,76,0.05) 0%, transparent 22%);
+}
 .page-hero .container { position: relative; }
 .page-hero-badge {
     display: inline-block;
@@ -282,6 +347,19 @@ h1,h2,h3,h4 {
 }
 .back-link:hover { color: var(--gold-light); text-decoration: none; }
 
+/* Keeps back-link and badge aligned on one row */
+.hero-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+}
+.hero-meta-row .back-link,
+.hero-meta-row .page-hero-badge {
+    margin-bottom: 0;
+}
+
 /* --- Section Header ------------------------------------ */
 .section-header {
     display: flex;
@@ -295,6 +373,61 @@ h1,h2,h3,h4 {
     color: var(--navy);
 }
 .section-header p { color: var(--text-muted); font-size: 0.95rem; flex: 1; }
+
+/* --- Home (Start Here guide) -------------------------------- */
+.home-start .section-header { margin-bottom: 1rem; }
+.kpi-line {
+    margin-top: 0.5rem;
+    margin-bottom: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+.home-guide {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.home-guide-col {
+    flex: 1;
+    min-width: 280px;
+}
+.guide-list {
+    margin-top: 0.8rem;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.guide-link {
+    color: var(--navy);
+    font-weight: 600;
+    text-decoration: none;
+}
+.guide-link:hover {
+    color: var(--gold-light);
+    text-decoration: underline;
+}
+.guide-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.home-cta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.home-cta-row p { max-width: 640px; }
+.muted { color: var(--text-muted); }
+
+@media (max-width: 768px) {
+    .home-guide { flex-direction: column; }
+    .home-cta-row { flex-direction: column; align-items: flex-start; }
+}
 
 /* --- Stats --------------------------------------------- */
 .stats-section { padding: 2.5rem 0; }
@@ -439,6 +572,45 @@ h1,h2,h3,h4 {
 .quick-icon { font-size: 2rem; margin-bottom: 0.75rem; }
 .quick-card h3 { font-size: 1.2rem; color: var(--navy); margin-bottom: 0.5rem; }
 .quick-card p { font-size: 0.93rem; color: var(--text-muted); }
+.laws-quick-card {
+    background:
+        linear-gradient(135deg, rgba(202, 199, 193, 0.82) 0%, rgba(248,245,240,0.78) 62%, rgba(248,245,240,0.86) 100%),
+        url("../images/law photo2.png") center center / cover no-repeat;
+    position: relative;
+}
+.laws-quick-card h3,
+.laws-quick-card p {
+    position: relative;
+    z-index: 1;
+}
+.laws-quick-card .quick-icon {
+    position: relative;
+    z-index: 1;
+}
+.quick-card.offences-quick-card {
+    background:
+        linear-gradient(135deg, rgba(248,245,240,0.84) 0%, rgba(248,245,240,0.77) 62%, rgba(248,245,240,0.88) 100%),
+        url("../images/offences photo.png") center center / cover no-repeat;
+    position: relative;
+}
+.quick-card.offences-quick-card h3,
+.quick-card.offences-quick-card p,
+.quick-card.offences-quick-card .quick-icon {
+    position: relative;
+    z-index: 1;
+}
+.quick-card.civic-quick-card {
+    background:
+        linear-gradient(135deg, rgba(248,245,240,0.80) 0%, rgba(248,245,240,0.75) 62%, rgba(248,245,240,0.86) 100%),
+        url("../images/civic photo.png") center center / cover no-repeat;
+    position: relative;
+}
+.quick-card.civic-quick-card h3,
+.quick-card.civic-quick-card p,
+.quick-card.civic-quick-card .quick-icon {
+    position: relative;
+    z-index: 1;
+}
 
 /* --- Laws Grid ----------------------------------------- */
 .laws-grid {
@@ -494,6 +666,7 @@ h1,h2,h3,h4 {
     line-height: 1.5;
 }
 .law-link { font-size: 0.85rem; color: var(--gold); font-weight: 600; }
+.view-link { font-size: 0.85rem; color: var(--gold); font-weight: 600; }
 
 /* -------- Categories ----------------------------------------------------- */
 .cat-grid {
@@ -663,7 +836,7 @@ h1,h2,h3,h4 {
 .empty-state p { margin-bottom: 1.5rem; }
 
 /* --- Footer --------------------------------------------
-   Main site footer.
+   Main site footer styles used in base.html
 */
 .footer {
     background: var(--navy);
@@ -708,16 +881,57 @@ h1,h2,h3,h4 {
     transition: color 0.2s;
 }
 .footer-links a:hover { color: var(--gold-light); }
+
+/* Referenced Acts in footer */
+.footer-references {
+    width: 100%;
+    max-width: 980px;
+    margin-top: 0.45rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid rgba(255,255,255,0.12);
+}
+.footer-references h4 {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 0.6rem;
+    font-family: 'Crimson Pro', serif;
+}
+.footer-ref-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.6rem;
+}
+.footer-ref-links a {
+    color: rgba(255,255,255,0.86);
+    text-decoration: none;
+    font-size: 0.82rem;
+    transition: color 0.2s, text-decoration-color 0.2s;
+}
+.footer-ref-links a:hover {
+    color: var(--gold-light);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.footer-ref-links a:not(:last-child)::after {
+    content: "•";
+    color: rgba(255,255,255,0.35);
+    margin-left: 0.6rem;
+}
+
 .footer-copy {
     font-size: 0.8rem;
     color: rgba(255,255,255,0.5);
 }
 .footer-copy-row {
+    /* Keep the two copyright lines close to the center */
     width: 100%;
     display: flex;
-    justify-content: center;   /* keep both phrases near centre */
+    justify-content: center;
     align-items: center;
-    gap: 2rem;                 /* space between the two phrases */
+    gap: 5rem;
     margin-top: 0.4rem;
 }
 .footer-copy-right {
@@ -725,18 +939,18 @@ h1,h2,h3,h4 {
 }
 
 /* Legacy nav column (not used in current HTML). */
-.footer-nav { display: flex; flex-direction: column; gap: 0.5rem; }     
+.footer-nav { display: flex; flex-direction: column; gap: 0.5rem; }
 .footer-nav h4 {
     color: var(--gold-light);
     font-size: 0.9rem;
     text-transform: uppercase;
-    letter-spacing: 0.1rem;                             /*CHECK*/
+    letter-spacing: 0.1rem;
     margin-bottom: 0.25rem;
     font-family: 'Crimson Pro', serif;
 }
 .footer-nav a {
     color: rgb(245, 4, 4);
-    font-size: 0.8px;
+    font-size: 0.8rem;
     text-decoration: none;
     transition: color 0.2s;
 }
@@ -744,7 +958,7 @@ h1,h2,h3,h4 {
 /* Legacy bottom block (not used in current HTML). */
 .footer-bottom {
     text-align: center;
-    font-size: 0.8px;
+    font-size: 0.8rem;
     color: rgba(255,255,255,0.3);
 }
 
@@ -763,6 +977,172 @@ h1,h2,h3,h4 {
 .stat-card:nth-child(3) { animation-delay: 0.3s; }
 .stat-card:nth-child(4) { animation-delay: 0.4s; }
 
+/* --- Home offence comparison panel ---------------------- */
+.crime-compare {
+    background: linear-gradient(160deg, #2f3133, #242628 55%, #2b2d2f);
+    color: #f3f4f6;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 12px;
+    padding: 1.1rem 1rem 1rem;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+}
+.crime-compare-head h2 {
+    color: #ffffff;
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+.crime-compare-head p {
+    color: #d2d8de;
+    font-size: 0.83rem;
+    margin-bottom: 0.8rem;
+}
+.crime-compare-legend {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    font-size: 0.76rem;
+    color: #d6dce3;
+    margin-bottom: 0.75rem;
+}
+.crime-compare-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.28);
+}
+.dot-2023 { background: rgba(26, 110, 74, 0.95); }
+.dot-2024 { background: rgba(190, 222, 138, 0.95); }
+.dot-inc { background: #f2b3b3; }
+.dot-dec { background: #b9e4bc; }
+
+.crime-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.48rem;
+}
+.crime-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.3fr) minmax(200px, 2fr) 130px 86px;
+    align-items: center;
+    gap: 0.6rem;
+}
+.crime-label {
+    font-size: 0.8rem;
+    color: #f3f4f6;
+    font-weight: 600;
+}
+.crime-bars {
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 5px;
+    align-items: center;
+    min-height: 30px;
+}
+.bar {
+    display: block;
+    height: 12px;
+    width: 0;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.28);
+    box-sizing: border-box;
+    transition: width 1.3s cubic-bezier(.22,.61,.36,1);
+}
+.y2023 {
+    background: rgba(26, 110, 74, 0.95);
+}
+.y2024 {
+    background: rgba(190, 222, 138, 0.95);
+}
+.crime-values {
+    font-size: 0.75rem;
+    color: #e5e7eb;
+    text-align: right;
+    font-weight: 600;
+}
+.trend {
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.22rem 0.48rem;
+    text-align: center;
+}
+.trend-inc {
+    color: #7f1d1d;
+    background: #fde8e8;
+}
+.trend-dec {
+    color: #166534;
+    background: #e8f7ea;
+}
+.crime-summary {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    gap: 0.7rem;
+}
+.crime-summary div {
+    background: rgba(66, 66, 69, 0.454);
+    border: 1px solid rgba(32, 30, 30, 0.703);
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+    text-align: center;
+}
+.crime-summary strong {
+    display: block;
+    font-size: 1.05rem;
+    color: #fff;
+}
+.crime-summary span {
+    font-size: 0.72rem;
+    color: #bfc5cc;
+}
+.crime-summary .summary-good {
+    background: #e8f7ea;
+}
+.crime-summary .summary-good strong { color: #166534; }
+.crime-summary .summary-good span { color: #166534; }
+
+.crime-compare-foot {
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+.crime-source {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #cfd5dc;
+}
+.crime-cta {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #d8e27a;
+    text-decoration: none;
+}
+.crime-cta:hover {
+    color: #eef6a4;
+    text-decoration: underline;
+}
+
+.crime-compare {
+    opacity: 0.92;
+    transform: translateY(8px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.crime-compare.is-animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+.crime-compare.is-animated .bar {
+    width: calc(var(--target-width, 0) * 1%);
+}
+
 /* --- Responsive ---------------------------------------- */
 @media (max-width: 900px) {
     .detail-layout { grid-template-columns: 1fr; }
@@ -770,11 +1150,371 @@ h1,h2,h3,h4 {
 }
 
 @media (max-width: 768px) {
-    .navbar { flex-direction: column; height: auto; padding: 0.75rem 1rem; gap: 0.5rem; }
-    .nav-links { gap: 0.25rem; flex-wrap: wrap; justify-content: center; }
-    .nav-search input { width: 140px; }
+    .navbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        height: auto;
+        padding: 0.7rem 1rem;
+        gap: 0.5rem;
+    }
+    .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+    .nav-menu {
+        grid-column: 1 / -1;
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.7rem;
+        background: rgba(13,27,42,0.4);
+        border: 1px solid rgba(201,168,76,0.22);
+        border-radius: var(--radius);
+        padding: 0.75rem;
+    }
+    .nav-menu.is-open { display: flex; }
+    .nav-links {
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .nav-search { width: 100%; }
+    .nav-search input { width: 100%; }
     .hero-title { font-size: 2.2rem; }
     .footer-top { grid-template-columns: 1fr; }
+    .footer-copy-row { flex-direction: column; gap: 0.2rem; }
+    .footer-copy-right { text-align: center; }
+    .footer-references { margin-top: 0.6rem; }
+    .footer-ref-links { justify-content: center; }
     .topbar { display: none; }
     .section { padding: 2rem 0; }
+
+    .crime-row {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding-bottom: 0.45rem;
+        margin-bottom: 0.1rem;
+    }
+    .crime-values { text-align: left; }
+    .trend { justify-self: start; }
+    .crime-summary { grid-template-columns: 1fr; }
+    .crime-compare-foot { flex-direction: column; align-items: flex-start; }
+}
+
+
+/* =========================================================
+   Constitution of Kenya — Styles
+   Fits existing Navy + Gold theme
+   ========================================================= */
+
+/* --- Constitution card on laws.html -------------------- */
+.law-card.constitution-card {
+    border-top: 3px solid var(--gold) !important;
+    background: linear-gradient(160deg, #fffdf5 80%, #f9f3e3 100%);
+}
+.law-card.constitution-card:hover {
+    border-top-color: var(--gold-light) !important;
+}
+.badge-supreme {
+    background: rgba(158,165,67,0.15);
+    color: #5a5e10;
+    border: 1px solid var(--gold);
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.77rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+.view-link.constitution-link {
+    color: var(--gold) !important;
+    font-weight: 700;
+}
+
+/* --- Constitution chapters listing page (constitution.html) --- */
+.constitution-hero {
+    background: var(--navy);
+    padding: 3rem 0 2.5rem;
+    color: var(--white);
+    border-bottom: 2px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+}
+.constitution-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(158,165,67,0.06) 0%, transparent 60%);
+}
+.constitution-hero .container { position: relative; }
+.constitution-hero h1 {
+    font-size: 2.4rem;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+}
+.constitution-hero h1 .year-tag { color: var(--gold-light); }
+.constitution-hero p {
+    color: rgba(255,255,255,0.65);
+    font-size: 1.05rem;
+    max-width: 600px;
+}
+
+.chapter-stats-bar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 0;
+}
+.chapter-stats-bar .container {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.chapters-section { padding: 3rem 0; }
+.chapters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.chapter-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    border-top: 3px solid var(--navy-light);
+    transition: all 0.2s;
+}
+.chapter-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-top-color: var(--gold);
+    text-decoration: none;
+    color: var(--text);
+}
+.chapter-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.chapter-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Crimson Pro', serif;
+}
+.articles-badge {
+    background: var(--cream);
+    color: var(--text-muted);
+    border-radius: 50px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+}
+.chapter-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0;
+    line-height: 1.35;
+    font-family: 'Playfair Display', serif;
+}
+.chapter-summary {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    flex: 1;
+}
+.chapter-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin-top: 0.25rem;
+}
+
+/* --- Constitution chapter detail page (constitution_chapter.html) --- */
+.breadcrumb-bar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+.breadcrumb-bar .container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.breadcrumb-bar a { color: var(--navy); text-decoration: none; }
+.breadcrumb-bar a:hover { color: var(--gold); text-decoration: underline; }
+
+.chap-hero {
+    background: var(--navy);
+    padding: 3rem 0 2.5rem;
+    color: var(--white);
+    border-bottom: 2px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+}
+.chap-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(158,165,67,0.06) 0%, transparent 60%);
+}
+.chap-hero .container { position: relative; }
+.chap-meta {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.85rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.chap-badge {
+    background: rgba(158,165,67,0.18);
+    color: var(--gold-light);
+    border: 1px solid rgba(158,165,67,0.35);
+    border-radius: 50px;
+    padding: 0.25rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.art-badge {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50px;
+    padding: 0.25rem 0.85rem;
+    font-size: 0.75rem;
+}
+.chap-hero h1 {
+    font-size: 2rem;
+    color: var(--white);
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+.chap-summary-text {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+    max-width: 680px;
+}
+
+.chap-content-section {
+    display: flex;
+    gap: 2rem;
+    padding: 2.5rem 0 4rem;
+    align-items: flex-start;
+}
+
+.content-card {
+    flex: 1;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    border-top: 3px solid var(--gold);
+}
+.content-card h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Crimson Pro', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.chap-body {
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.85;
+}
+
+.articles-note {
+    margin-top: 1.25rem;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.85rem 1.25rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+/* Sidebar chapter navigator */
+.chap-nav {
+    width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 80px;
+}
+.chap-nav h3 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
+    font-family: 'Crimson Pro', serif;
+}
+.chap-nav-note {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+.chap-nav-item {
+    display: block;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: var(--radius);
+    margin-bottom: 2px;
+    transition: background 0.15s, color 0.15s;
+}
+.chap-nav-item:hover {
+    background: rgba(158,165,67,0.12);
+    color: var(--navy);
+    text-decoration: none;
+}
+.chap-nav-item.active {
+    background: var(--navy);
+    color: var(--gold-light);
+    font-weight: 600;
+}
+.chap-back-btn {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.83rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 600;
+}
+.chap-back-btn:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .chap-content-section { flex-direction: column; }
+    .chap-nav { width: 100%; position: static; }
+    .chap-nav-item { display: inline-block; margin: 2px; }
+    .chapters-grid { grid-template-columns: 1fr; }
 }

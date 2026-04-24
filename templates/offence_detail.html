@@ -5,8 +5,10 @@
 {% if offence %}
 <div class="page-hero">
     <div class="container">
-        <a href="{{ url_for('offences') }}" class="back-link">← Back to Offences</a>
-        <div class="page-hero-badge">Criminal Offence</div>
+        <div class="hero-meta-row">
+            <a href="{{ url_for('offences') }}" class="back-link">← Back to Offences</a>
+            <div class="page-hero-badge">Criminal Offence</div>
+        </div>
         <h1>{{ offence.title }}</h1>
     </div>
 </div>

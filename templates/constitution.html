@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Constitution of Kenya 2010 — LegalAwareKE{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="constitution-hero">
+  <div class="hero-inner">
+    <div class="hero-badge">&#9878; Supreme Law</div>
+    <h1>Constitution of Kenya <span class="year-tag">2010</span></h1>
+    <p>The supreme law of the Republic of Kenya. Browse all 18 chapters with detailed summaries and article references.</p>
+  </div>
+</section>
+
+
+
+<!-- Chapters Grid -->
+<section class="chapters-section">
+  <div class="chapters-grid">
+    {% for chapter in chapters %}
+    <a href="{{ url_for('constitution_chapter', chapter_id=chapter.chapter_id) }}" class="chapter-card">
+      <div class="chapter-card-header">
+        <span class="chapter-num">Chapter {{ chapter.chapter_number }}</span>
+        {% if chapter.articles_range %}
+        <span class="articles-badge">{{ chapter.articles_range }}</span>
+        {% endif %}
+      </div>
+      <h2 class="chapter-title">{{ chapter.title }}</h2>
+      <p class="chapter-summary">{{ chapter.summary[:160] }}{% if chapter.summary|length > 160 %}...{% endif %}</p>
+      <span class="chapter-link">Read chapter </span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block styles %}
+<style>
+  /* Hero */
+  .constitution-hero {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a2e4a 100%);
+    padding: 60px 40px;
+    color: #fff;
+    border-bottom: 3px solid #c9a84c;
+  }
+  .hero-inner {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(201,168,76,0.15);
+    color: #c9a84c;
+    border: 1px solid #c9a84c;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+  .constitution-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin: 0 0 14px;
+    color: #fff;
+  }
+  .year-tag {
+    color: #c9a84c;
+  }
+  .constitution-hero p {
+    font-size: 1.05rem;
+    color: #a0b4c8;
+    max-width: 640px;
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  /* Stats bar */
+  .chapter-bar {
+    background: #f4f1e8;
+    border-bottom: 1px solid #ddd;
+    padding: 12px 40px;
+  }
+  .chapter-bar-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #5a5a4a;
+    font-weight: 500;
+  }
+
+  /* Chapters grid */
+  .chapters-section {
+    padding: 48px 40px;
+    background: #f8f6f0;
+    min-height: 60vh;
+  }
+  .chapters-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  /* Chapter card */
+  .chapter-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    border-top: 3px solid #1a2e4a;
+  }
+  .chapter-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+    transform: translateY(-3px);
+    border-top-color: #c9a84c;
+  }
+  .chapter-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chapter-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a2e4a;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .articles-badge {
+    background: #f0ece0;
+    color: #7a6a3a;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chapter-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0d1b2a;
+    margin: 0;
+    line-height: 1.4;
+  }
+  .chapter-summary {
+    font-size: 0.88rem;
+    color: #555;
+    line-height: 1.65;
+    margin: 0;
+    flex: 1;
+  }
+  .chapter-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #c9a84c;
+    margin-top: 4px;
+  }
+</style>
+{% endblock %}

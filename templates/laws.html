@@ -2,7 +2,7 @@
 {% block title %}Laws & Statutes — LegalAwareKE{% endblock %}
 
 {% block content %}
-<div class="page-hero">
+<div class="page-hero laws-hero">
     <div class="container">
         <div class="page-hero-badge">Legal Framework</div>
         <h1>Laws & Statutes</h1>
@@ -14,14 +14,22 @@
     {% if laws %}
     <div class="laws-grid">
         {% for law in laws %}
-        <a href="{{ url_for('law_detail', law_id=law.id) }}" class="law-card">
+        <a href="{% if 'Constitution' in law.title %}{{ url_for('constitution') }}{% else %}{{ url_for('law_detail', law_id=law.id) }}{% endif %}" class="law-card">
             <div class="law-card-header">
                 <span class="law-year">{{ law.year or 'N/A' }}</span>
+                {% if 'Constitution' in law.title %}
+                <span class="law-count">18 chapters</span>
+                {% else %}
                 <span class="law-count">{{ law.offence_count }} offence{{ 's' if law.offence_count != 1 }}</span>
+                {% endif %}
             </div>
             <h3 class="law-title">{{ law.title }}</h3>
             <p class="law-desc">{{ law.description or 'No description available.' }}</p>
-            <span class="law-link">View offences →</span>
+            {% if 'Constitution' in law.title %}
+              <span class="view-link constitution-link">View chapters</span>
+            {% else %}
+              <span class="view-link">View offences</span>
+            {% endif %}
         </a>
         {% endfor %}
     </div>

@@ -5,8 +5,10 @@
 {% if article %}
 <div class="page-hero">
     <div class="container">
-        <a href="{{ url_for('civic') }}" class="back-link">← Back to Civic Education</a>
-        <div class="page-hero-badge">Civic Education</div>
+        <div class="hero-meta-row">
+            <a href="{{ url_for('civic') }}" class="back-link">← Back to Civic Education</a>
+            <div class="page-hero-badge">Civic Education</div>
+        </div>
         <h1>{{ article.title }}</h1>
     </div>
 </div>

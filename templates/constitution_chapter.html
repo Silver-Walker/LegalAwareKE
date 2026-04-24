@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Chapter {{ chapter.chapter_number }}: {{ chapter.title }} — Constitution of Kenya{% endblock %}
+
+{% block content %}
+
+<!-- Chapter Hero -->
+<div class="page-hero">
+  <div class="container">
+    <div class="hero-meta-row">
+      <a href="{{ url_for('laws') }}" class="back-link">← Back to Laws</a>
+      <div class="page-hero-badge">2010</div>
+    </div>
+    <h1>Chapter {{ chapter.chapter_number }}: {{ chapter.title }}</h1>
+    <p>{{ chapter.summary }}</p>
+  </div>
+</div>
+
+<!-- Chapter Content -->
+<section class="chap-content-section">
+  <div class="chap-content-inner">
+
+    <div class="content-card">
+      <h2> Detailed Overview</h2>
+      <div class="chap-body">
+        {{ chapter.content | safe }}
+      </div>
+    </div>
+
+    {% if chapter.articles_range %}
+    <div class="articles-note">
+      
+      <span>This chapter covers <strong>{{ chapter.articles_range }}</strong> of the Constitution of Kenya 2010.</span>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Sidebar nav -->
+  <aside class="chap-nav">
+    <h3>All Chapters</h3>
+    <div class="chap-nav-note">Navigate to any chapter of the Constitution</div>
+    {% for i in range(1, 19) %}
+    <a href="{{ url_for('constitution_chapter', chapter_id=i) }}"
+       class="chap-nav-item {% if i == chapter.chapter_number %}active{% endif %}">
+      Ch. {{ i }}
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('constitution') }}" class="back-btn">&#8592; All Chapters</a>
+  </aside>
+</section>
+
+{% endblock %}
+
+{% block styles %}
+<style>
+
+  /* Content layout */
+  .chap-content-section {
+    display: flex;
+    gap: 32px;
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 40px 60px;
+    align-items: flex-start;
+  }
+
+  /* Main content card */
+  .content-card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 36px;
+    border-top: 3px solid #c9a84c;
+  }
+  .content-card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0d1b2a;
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+  }
+  .chap-body {
+    font-size: 0.97rem;
+    color: #333;
+    line-height: 1.85;
+  }
+
+  /* Articles note */
+  .articles-note {
+    margin-top: 20px;
+    background: #f4f1e8;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 0.9rem;
+    color: #5a5a4a;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* Sidebar */
+  .chap-nav {
+    width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+  }
+  .chap-nav h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #0d1b2a;
+    margin: 0 0 4px;
+  }
+  .chap-nav-note {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .chap-nav-item {
+    display: block;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #444;
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    transition: background 0.15s;
+  }
+  .chap-nav-item:hover { background: #f0ece0; color: #1a2e4a; }
+  .chap-nav-item.active {
+    background: #1a2e4a;
+    color: #c9a84c;
+    font-weight: 600;
+  }
+  .back-btn {
+    display: block;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #c9a84c;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .back-btn:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .chap-content-section { flex-direction: column; padding: 0 20px 40px; margin-top: 24px; }
+    .chap-nav { width: 100%; position: static; }
+    .chap-nav-item { display: inline-block; margin: 2px; }
+  }
+</style>
+{% endblock %}
