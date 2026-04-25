@@ -52,13 +52,18 @@ from urllib.parse import urlparse
 
 def get_db():
     db_url = os.getenv("DB_URL")
+
+    if not db_url:
+        raise Exception("DB_URL not set")
+
+    from urllib.parse import urlparse
     result = urlparse(db_url)
 
     return mysql.connector.connect(
         host=result.hostname,
         user=result.username,
         password=result.password,
-        database=result.path.lstrip("/"),
+        database=result.path.replace("/", ""),
         port=result.port
     )
 
