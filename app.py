@@ -46,9 +46,9 @@ PENDING_2FA = {}
 # ==========================
 # Database connection
 # ==========================
-import os
-import mysql.connector
 from urllib.parse import urlparse
+import mysql.connector
+import os
 
 def get_db():
     db_url = os.getenv("DB_URL")
@@ -56,15 +56,15 @@ def get_db():
     if not db_url:
         raise Exception("DB_URL not set")
 
-    from urllib.parse import urlparse
     result = urlparse(db_url)
 
     return mysql.connector.connect(
         host=result.hostname,
         user=result.username,
         password=result.password,
-        database=result.path.replace("/", ""),
-        port=result.port
+        database=result.path.lstrip("/"),
+        port=result.port,
+        ssl_disabled=False  # important for Railway
     )
 
 # ==========================
