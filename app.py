@@ -46,12 +46,20 @@ PENDING_2FA = {}
 # ==========================
 # Database connection
 # ==========================
+import os
+import mysql.connector
+from urllib.parse import urlparse
+
 def get_db():
+    db_url = os.getenv("DB_URL")
+    result = urlparse(db_url)
+
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Allann7209#@!",
-        database="legal_awareness_db",
+        host=result.hostname,
+        user=result.username,
+        password=result.password,
+        database=result.path.lstrip("/"),
+        port=result.port
     )
 
 # ==========================
