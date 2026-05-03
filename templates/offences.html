@@ -24,32 +24,34 @@
     </div>
 
     {% if offences %}
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Offence</th>
-                <th>Law</th>
-                <th>Section</th>
-                <th>Category</th>
-                <th>Penalty</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for o in offences %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td><strong>{{ o.title }}</strong></td>
-                <td><span class="badge badge-law">{{ o.law_title or 'N/A' }}</span></td>
-                <td>{{ o.section_number or '—' }}</td>
-                <td>{{ o.category_name or '—' }}</td>
-                <td class="penalty-cell">{{ o.penalty }}</td>
-                <td><a href="{{ url_for('offence_detail', offence_id=o.id) }}" class="btn btn-sm">View</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Offence</th>
+                    <th>Law</th>
+                    <th>Section</th>
+                    <th>Category</th>
+                    <th>Penalty</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in offences %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ o.title }}</strong></td>
+                    <td><span class="badge badge-law">{{ o.law_title or 'N/A' }}</span></td>
+                    <td>{{ o.section_number or '—' }}</td>
+                    <td>{{ o.category_name or '—' }}</td>
+                    <td class="penalty-cell">{{ o.penalty }}</td>
+                    <td><a href="{{ url_for('offence_detail', offence_id=o.id) }}" class="btn btn-sm">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <div class="empty-state">
         <div class="empty-icon">⚠</div>

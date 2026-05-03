@@ -10,8 +10,14 @@
 <body class="admin-body">
 
 {% if session.admin_id %}
+<button class="admin-nav-toggle" type="button" aria-expanded="false" aria-controls="admin-sidebar" aria-label="Toggle admin navigation">
+    ☰
+</button>
+
+<div class="admin-sidebar-overlay" hidden></div>
+
 <!-- Sidebar -->
-<aside class="sidebar">
+<aside class="sidebar" id="admin-sidebar">
     <div class="sidebar-brand">
         <img src="{{ url_for('static', filename='images/law icon.png') }}" alt="LegalAwareKE" class="brand-icon">
         <div>
@@ -89,6 +95,36 @@
 {% endif %}
 
 <script>
+    (function () {
+        const toggle = document.querySelector('.admin-nav-toggle');
+        const sidebar = document.getElementById('admin-sidebar');
+        const overlay = document.querySelector('.admin-sidebar-overlay');
+        const body = document.body;
+        if (!toggle || !sidebar || !overlay) return;
+
+        const setOpen = function (open) {
+            sidebar.classList.toggle('is-open', open);
+            overlay.hidden = !open;
+            toggle.setAttribute('aria-expanded', String(open));
+            body.classList.toggle('admin-sidebar-open', open);
+        };
+
+        const close = function () { setOpen(false); };
+
+        toggle.addEventListener('click', function () {
+            setOpen(!sidebar.classList.contains('is-open'));
+        });
+        overlay.addEventListener('click', close);
+
+        sidebar.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', close);
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 650) close();
+        });
+    })();
+
     // Live clock
     function updateTime() {
         const el = document.getElementById('adminTime');

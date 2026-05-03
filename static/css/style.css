@@ -29,7 +29,7 @@
 /* --- Reset ---------------------------------------------- */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-html { font-size:16px; scroll-behavior:smooth; }
+html { font-size:16px; scroll-behavior:smooth; overflow-x: hidden; }
 
 body {
     font-family: 'Crimson Pro', Georgia, serif;
@@ -39,7 +39,11 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
 }
+
+img, video, svg { max-width: 100%; height: auto; }
+pre, code { max-width: 100%; overflow-x: auto; }
 
 a { color: var(--gold); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -100,8 +104,8 @@ h1,h2,h3,h4 {
 /* Brand icon supports either emoji (span) or an image (img.brand-icon).
    Keep images constrained so high-res PNGs don't blow up the navbar. */
 .brand-icon {
-    width: 58px;
-    height: 58px;
+    width: clamp(40px, 9vw, 58px);
+    height: clamp(40px, 9vw, 58px);
     display: inline-block;
     vertical-align: middle;
     object-fit: contain;
@@ -244,7 +248,7 @@ h1,h2,h3,h4 {
     margin-bottom: 1.5rem;
 }
 .hero-title {
-    font-size: 3.2rem;
+    font-size: clamp(2rem, 5.6vw, 3.2rem);
     font-weight: 900;
     line-height: 1.1;
     margin-bottom: 1.25rem;
@@ -331,7 +335,7 @@ h1,h2,h3,h4 {
     margin-bottom: 0.75rem;
 }
 .page-hero h1 {
-    font-size: 2.4rem;
+    font-size: clamp(1.85rem, 4.2vw, 2.4rem);
     color: var(--white);
     margin-bottom: 0.5rem;
 }
@@ -466,14 +470,24 @@ h1,h2,h3,h4 {
     box-shadow: var(--shadow);
 }
 
-/* --- Data Table ---------------------------------------- */
-.data-table {
+/* --- Tables (horizontal overflow safety) ------------- */
+.table-responsive {
     width: 100%;
-    border-collapse: collapse;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     background: var(--white);
     border-radius: var(--radius-lg);
-    overflow: hidden;
     box-shadow: var(--shadow);
+}
+
+.data-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
     font-size: 0.95rem;
 }
 .data-table thead {
@@ -615,7 +629,7 @@ h1,h2,h3,h4 {
 /* --- Laws Grid ----------------------------------------- */
 .laws-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
     gap: 1.5rem;
 }
 .law-card {
@@ -707,7 +721,7 @@ h1,h2,h3,h4 {
 /* --- Civic Grid ---------------------------------------- */
 .civic-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
     gap: 1.5rem;
 }
 .civic-card {
@@ -1178,8 +1192,12 @@ h1,h2,h3,h4 {
         justify-content: center;
     }
     .nav-search { width: 100%; }
-    .nav-search input { width: 100%; }
-    .hero-title { font-size: 2.2rem; }
+    .nav-search input { width: 100%; flex: 1; min-width: 0; }
+    .nav-search button { align-self: stretch; }
+    .detail-card,
+    .content-card {
+        padding: 1.5rem;
+    }
     .footer-top { grid-template-columns: 1fr; }
     .footer-copy-row { flex-direction: column; gap: 0.2rem; }
     .footer-copy-right { text-align: center; }
@@ -1199,6 +1217,18 @@ h1,h2,h3,h4 {
     .trend { justify-self: start; }
     .crime-summary { grid-template-columns: 1fr; }
     .crime-compare-foot { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 520px) {
+    .flash-container,
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .sidebar-label {
+        white-space: normal;
+    }
 }
 
 
@@ -1276,7 +1306,7 @@ h1,h2,h3,h4 {
 .chapters-section { padding: 3rem 0; }
 .chapters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
     gap: 1.5rem;
 }
 
