@@ -411,9 +411,24 @@ def api_stats():
 # ADMIN ROUTES
 # ==========================
 
+def render_admin_login(**context):
+    try:
+        return render_template("admin/login.html", **context)
+    except Exception:
+        app.logger.exception("Admin login template failed to render")
+        # Fallback keeps /admin/login usable even if template rendering fails in prod.
+        return (
+            "<h1>Admin Login Unavailable</h1>"
+            "<p>Please check server logs and try again shortly.</p>"
+        )
+
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
-    cleanup_expired_2fa()
+    try:
+        cleanup_expired_2fa()
+    except Exception:
+        app.logger.exception("Failed to clean up expired 2FA tokens")
+        session.pop("pending_2fa_token", None)
 
     if request.method == "POST":
         otp_code = request.form.get("otp_code", "").strip()
@@ -435,7 +450,7 @@ def admin_login():
 
             if otp_code != pending["otp_code"]:
                 flash("Invalid verification code.", "danger")
-                return render_template("admin/login.html", two_factor_required=True)
+                return render_admin_login(two_factor_required=True)
 
             session["admin_id"] = pending["admin_id"]
             session["admin_username"] = pending["admin_username"]
@@ -457,14 +472,14 @@ def admin_login():
 
         if not user or not check_password_hash(user["password_hash"], password):
             flash("Invalid username or password.", "danger")
-            return render_template("admin/login.html")
+            return render_admin_login()
 
         if not smtp_configured():
             flash(
                 "2FA email is not configured. Set SMTP_USER, SMTP_PASS (or SMTP_PASSWORD), and ADMIN_2FA_EMAIL in your environment or `.env` file.",
                 "danger",
             )
-            return render_template("admin/login.html")
+            return render_admin_login()
 
         otp_code = f"{secrets.randbelow(1_000_000):06d}"
         token = secrets.token_urlsafe(32)
@@ -490,7 +505,7 @@ def admin_login():
                 "and set SMTP_USER to the same Gmail address. Re-copy the password into Render with no spaces or quotes.",
                 "danger",
             )
-            return render_template("admin/login.html")
+            return render_admin_login()
         except (TimeoutError, ConnectionError, OSError):
             app.logger.exception("Admin 2FA SMTP connection failed")
             PENDING_2FA.pop(token, None)
@@ -506,13 +521,13 @@ def admin_login():
                 + hint,
                 "danger",
             )
-            return render_template("admin/login.html")
+            return render_admin_login()
         except smtplib.SMTPException as e:
             app.logger.exception("Admin 2FA SMTP error")
             PENDING_2FA.pop(token, None)
             session.pop("pending_2fa_token", None)
             flash(f"Mail server (SMTP) error: {e}", "danger")
-            return render_template("admin/login.html")
+            return render_admin_login()
         except Exception as e:
             app.logger.exception("Admin 2FA email failed")
             PENDING_2FA.pop(token, None)
@@ -531,14 +546,14 @@ def admin_login():
                     + hint,
                     "danger",
                 )
-            return render_template("admin/login.html")
+            return render_admin_login()
 
         flash(f"Verification code sent to {admin_email}. Enter it below.", "info")
-        return render_template("admin/login.html", two_factor_required=True)
+        return render_admin_login(two_factor_required=True)
 
     if session.get("pending_2fa_token"):
-        return render_template("admin/login.html", two_factor_required=True)
-    return render_template("admin/login.html")
+        return render_admin_login(two_factor_required=True)
+    return render_admin_login()
 
 
 @app.route("/admin/logout")
