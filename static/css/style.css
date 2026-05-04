@@ -951,6 +951,17 @@ h1,h2,h3,h4 {
 .footer-copy-right {
     text-align: left;
 }
+.footer-creator-link {
+    color: #e8d48a;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s, text-decoration-color 0.2s;
+}
+.footer-creator-link:hover {
+    color: var(--gold-light);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
 
 /* Legacy nav column (not used in current HTML). */
 .footer-nav { display: flex; flex-direction: column; gap: 0.5rem; }

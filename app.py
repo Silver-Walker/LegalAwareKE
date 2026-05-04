@@ -3,11 +3,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import mysql.connector
 import os
-import ssl
-import smtplib
-import secrets
-from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key_change_this"  # Change this in production!
@@ -29,87 +24,11 @@ def load_local_env():
             key = key.strip()
             value = value.strip().strip("'\"")
             if key:
-                # Prefer values from `.env` so local SMTP/DB config isn't stuck empty
-                # when the shell already defines blank placeholders (common on Windows).
+                # Prefer values from `.env` for local dev (overrides empty shell placeholders on Windows).
                 os.environ[key] = value
 
 
 load_local_env()
-
-# 2FA settings (set these in environment variables / .env)
-OTP_EXPIRY_MINUTES = int(os.getenv("OTP_EXPIRY_MINUTES", "5"))
-
-
-def _smtp_password():
-    raw = (os.getenv("SMTP_PASS", os.getenv("SMTP_PASSWORD", "")) or "").strip().lstrip("\ufeff")
-    # Gmail app passwords are 16 characters; spaces are optional when authenticating.
-    return raw.replace(" ", "")
-
-
-def smtp_configured():
-    user = os.getenv("SMTP_USER", "").strip().lstrip("\ufeff")
-    recipient = os.getenv("ADMIN_2FA_EMAIL", "").strip().lstrip("\ufeff")
-    return bool(user and _smtp_password() and recipient)
-
-
-def send_two_factor_email(recipient, code, username):
-    host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip().lstrip("\ufeff")
-    port = int(os.getenv("SMTP_PORT", "587") or "587")
-    use_ssl = os.getenv("SMTP_SSL", "").lower() in ("1", "true", "yes")
-    # Gmail SMTP_SSL belongs on 465; 587 is for STARTTLS.
-    if use_ssl and "gmail" in host.lower() and port == 587:
-        port = 465
-    user = os.getenv("SMTP_USER", "").strip().lstrip("\ufeff")
-    password = _smtp_password()
-    auto_ssl_fallback = os.getenv("SMTP_AUTO_SSL_FALLBACK", "true").lower() in ("1", "true", "yes")
-    tls_ctx = ssl.create_default_context()
-
-    subject = "Your LegalAwareKE Admin Login Code"
-    body = (
-        f"Hello {username},\n\n"
-        f"Your LegalAwareKE admin verification code is: {code}\n"
-        f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
-        "If you did not request this login, you can ignore this email.\n"
-    )
-
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = user
-    msg["To"] = recipient
-    msg.set_content(body)
-
-    def _send(use_ssl_mode, port_num):
-        if use_ssl_mode:
-            ssl_port = port_num if port_num else 465
-            with smtplib.SMTP_SSL(host, ssl_port, timeout=30, context=tls_ctx) as server:
-                server.login(user, password)
-                server.send_message(msg)
-        else:
-            with smtplib.SMTP(host, port_num, timeout=30) as server:
-                server.starttls(context=tls_ctx)
-                server.login(user, password)
-                server.send_message(msg)
-
-    try:
-        _send(use_ssl, port)
-    except smtplib.SMTPAuthenticationError:
-        raise
-    except (TimeoutError, ConnectionError, OSError) as first_err:
-        # SMTPConnectError subclasses both OSError and SMTPException; it must be handled
-        # before a bare SMTPException, otherwise we never try implicit SSL on 465.
-        if auto_ssl_fallback and not use_ssl and port == 587:
-            try:
-                _send(True, 465)
-                return
-            except Exception:
-                raise first_err from None
-        raise
-    except smtplib.SMTPException:
-        raise
-
-# In-memory pending 2FA challenges (token -> challenge data).
-# For production deployments with multiple workers, move this to shared storage.
-PENDING_2FA = {}
 
 # ==========================
 # Database connection
@@ -146,13 +65,6 @@ def login_required(f):
             return redirect(url_for("admin_login"))
         return f(*args, **kwargs)
     return decorated
-
-
-def cleanup_expired_2fa():
-    now = datetime.now(timezone.utc)
-    expired_tokens = [token for token, data in PENDING_2FA.items() if data["expires_at"] < now]
-    for token in expired_tokens:
-        PENDING_2FA.pop(token, None)
 
 
 # ==========================
@@ -424,42 +336,7 @@ def render_admin_login(**context):
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
-    try:
-        cleanup_expired_2fa()
-    except Exception:
-        app.logger.exception("Failed to clean up expired 2FA tokens")
-        session.pop("pending_2fa_token", None)
-
     if request.method == "POST":
-        otp_code = request.form.get("otp_code", "").strip()
-        pending_token = session.get("pending_2fa_token")
-
-        # Step 2: Verify emailed OTP
-        if otp_code and pending_token:
-            pending = PENDING_2FA.get(pending_token)
-            if not pending:
-                session.pop("pending_2fa_token", None)
-                flash("Verification session expired. Please sign in again.", "warning")
-                return redirect(url_for("admin_login"))
-
-            if pending["expires_at"] < datetime.now(timezone.utc):
-                PENDING_2FA.pop(pending_token, None)
-                session.pop("pending_2fa_token", None)
-                flash("Verification code expired. Please sign in again.", "warning")
-                return redirect(url_for("admin_login"))
-
-            if otp_code != pending["otp_code"]:
-                flash("Invalid verification code.", "danger")
-                return render_admin_login(two_factor_required=True)
-
-            session["admin_id"] = pending["admin_id"]
-            session["admin_username"] = pending["admin_username"]
-            PENDING_2FA.pop(pending_token, None)
-            session.pop("pending_2fa_token", None)
-            flash("Welcome back, " + session["admin_username"] + "!", "success")
-            return redirect(url_for("admin_dashboard"))
-
-        # Step 1: Verify username/password and send OTP
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
 
@@ -474,93 +351,16 @@ def admin_login():
             flash("Invalid username or password.", "danger")
             return render_admin_login()
 
-        if not smtp_configured():
-            flash(
-                "2FA email is not configured. Set SMTP_USER, SMTP_PASS (or SMTP_PASSWORD), and ADMIN_2FA_EMAIL in your environment or `.env` file.",
-                "danger",
-            )
-            return render_admin_login()
+        session["admin_id"] = user["id"]
+        session["admin_username"] = user["username"]
+        flash("Welcome back, " + session["admin_username"] + "!", "success")
+        return redirect(url_for("admin_dashboard"))
 
-        otp_code = f"{secrets.randbelow(1_000_000):06d}"
-        token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
-        PENDING_2FA[token] = {
-            "admin_id": user["id"],
-            "admin_username": user["username"],
-            "otp_code": otp_code,
-            "expires_at": expires_at,
-        }
-        session["pending_2fa_token"] = token
-
-        admin_email = os.getenv("ADMIN_2FA_EMAIL", "").strip().lstrip("\ufeff")
-        try:
-            send_two_factor_email(admin_email, otp_code, user["username"])
-        except smtplib.SMTPAuthenticationError:
-            app.logger.exception("Admin 2FA SMTP authentication failed")
-            PENDING_2FA.pop(token, None)
-            session.pop("pending_2fa_token", None)
-            flash(
-                "SMTP sign-in was rejected. For Gmail: turn on 2-Step Verification, create an App Password, "
-                "put that 16-character password in SMTP_PASSWORD (not your normal Gmail password), "
-                "and set SMTP_USER to the same Gmail address. Re-copy the password into Render with no spaces or quotes.",
-                "danger",
-            )
-            return render_admin_login()
-        except (TimeoutError, ConnectionError, OSError):
-            app.logger.exception("Admin 2FA SMTP connection failed")
-            PENDING_2FA.pop(token, None)
-            session.pop("pending_2fa_token", None)
-            hint = (
-                ' On Render: Dashboard → your Web Service → Logs, and search for "Admin 2FA".'
-                if os.getenv("RENDER")
-                else ""
-            )
-            flash(
-                "Could not connect to the SMTP server. Try SMTP_SSL=true with SMTP_PORT=465, "
-                "or confirm SMTP_HOST and SMTP_PORT. This app also retries Gmail on port 465 automatically when 587 fails."
-                + hint,
-                "danger",
-            )
-            return render_admin_login()
-        except smtplib.SMTPException as e:
-            app.logger.exception("Admin 2FA SMTP error")
-            PENDING_2FA.pop(token, None)
-            session.pop("pending_2fa_token", None)
-            flash(f"Mail server (SMTP) error: {e}", "danger")
-            return render_admin_login()
-        except Exception as e:
-            app.logger.exception("Admin 2FA email failed")
-            PENDING_2FA.pop(token, None)
-            session.pop("pending_2fa_token", None)
-            show_smtp_error = os.getenv("SHOW_SMTP_ERRORS", "").lower() in ("1", "true", "yes")
-            if app.debug or show_smtp_error:
-                flash(f"Could not send verification email: {e}", "danger")
-            else:
-                hint = (
-                    ' On Render, check Logs for the full traceback (search "Admin 2FA").'
-                    if os.getenv("RENDER")
-                    else ""
-                )
-                flash(
-                    "Could not send verification email. Check SMTP settings, or set SHOW_SMTP_ERRORS=true temporarily to see the exact error."
-                    + hint,
-                    "danger",
-                )
-            return render_admin_login()
-
-        flash(f"Verification code sent to {admin_email}. Enter it below.", "info")
-        return render_admin_login(two_factor_required=True)
-
-    if session.get("pending_2fa_token"):
-        return render_admin_login(two_factor_required=True)
     return render_admin_login()
 
 
 @app.route("/admin/logout")
 def admin_logout():
-    pending_token = session.get("pending_2fa_token")
-    if pending_token:
-        PENDING_2FA.pop(pending_token, None)
     session.clear()
     flash("Logged out successfully.", "info")
     return redirect(url_for("admin_login"))
