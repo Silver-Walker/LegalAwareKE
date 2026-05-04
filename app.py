@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import mysql.connector
 import os
+import ssl
 import smtplib
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -10,6 +11,8 @@ from email.message import EmailMessage
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key_change_this"  # Change this in production!
+# Footer “Njuguna” portfolio link (set CREATOR_PORTFOLIO_URL in .env when ready)
+app.config["CREATOR_PORTFOLIO_URL"] = os.getenv("CREATOR_PORTFOLIO_URL", "#")
 
 # Load .env file (if present) so local development picks up secrets.
 def load_local_env():
@@ -26,18 +29,83 @@ def load_local_env():
             key = key.strip()
             value = value.strip().strip("'\"")
             if key:
-                os.environ.setdefault(key, value)
+                # Prefer values from `.env` so local SMTP/DB config isn't stuck empty
+                # when the shell already defines blank placeholders (common on Windows).
+                os.environ[key] = value
 
 
 load_local_env()
 
 # 2FA settings (set these in environment variables / .env)
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASS", os.getenv("SMTP_PASSWORD", ""))
-ADMIN_2FA_EMAIL = os.getenv("ADMIN_2FA_EMAIL", "")
 OTP_EXPIRY_MINUTES = int(os.getenv("OTP_EXPIRY_MINUTES", "5"))
+
+
+def _smtp_password():
+    raw = (os.getenv("SMTP_PASS", os.getenv("SMTP_PASSWORD", "")) or "").strip().lstrip("\ufeff")
+    # Gmail app passwords are 16 characters; spaces are optional when authenticating.
+    return raw.replace(" ", "")
+
+
+def smtp_configured():
+    user = os.getenv("SMTP_USER", "").strip().lstrip("\ufeff")
+    recipient = os.getenv("ADMIN_2FA_EMAIL", "").strip().lstrip("\ufeff")
+    return bool(user and _smtp_password() and recipient)
+
+
+def send_two_factor_email(recipient, code, username):
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip().lstrip("\ufeff")
+    port = int(os.getenv("SMTP_PORT", "587") or "587")
+    use_ssl = os.getenv("SMTP_SSL", "").lower() in ("1", "true", "yes")
+    # Gmail SMTP_SSL belongs on 465; 587 is for STARTTLS.
+    if use_ssl and "gmail" in host.lower() and port == 587:
+        port = 465
+    user = os.getenv("SMTP_USER", "").strip().lstrip("\ufeff")
+    password = _smtp_password()
+    auto_ssl_fallback = os.getenv("SMTP_AUTO_SSL_FALLBACK", "true").lower() in ("1", "true", "yes")
+    tls_ctx = ssl.create_default_context()
+
+    subject = "Your LegalAwareKE Admin Login Code"
+    body = (
+        f"Hello {username},\n\n"
+        f"Your LegalAwareKE admin verification code is: {code}\n"
+        f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
+        "If you did not request this login, you can ignore this email.\n"
+    )
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = user
+    msg["To"] = recipient
+    msg.set_content(body)
+
+    def _send(use_ssl_mode, port_num):
+        if use_ssl_mode:
+            ssl_port = port_num if port_num else 465
+            with smtplib.SMTP_SSL(host, ssl_port, timeout=30, context=tls_ctx) as server:
+                server.login(user, password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port_num, timeout=30) as server:
+                server.starttls(context=tls_ctx)
+                server.login(user, password)
+                server.send_message(msg)
+
+    try:
+        _send(use_ssl, port)
+    except smtplib.SMTPAuthenticationError:
+        raise
+    except (TimeoutError, ConnectionError, OSError) as first_err:
+        # SMTPConnectError subclasses both OSError and SMTPException; it must be handled
+        # before a bare SMTPException, otherwise we never try implicit SSL on 465.
+        if auto_ssl_fallback and not use_ssl and port == 587:
+            try:
+                _send(True, 465)
+                return
+            except Exception:
+                raise first_err from None
+        raise
+    except smtplib.SMTPException:
+        raise
 
 # In-memory pending 2FA challenges (token -> challenge data).
 # For production deployments with multiple workers, move this to shared storage.
@@ -78,27 +146,6 @@ def login_required(f):
             return redirect(url_for("admin_login"))
         return f(*args, **kwargs)
     return decorated
-
-
-def send_two_factor_email(recipient, code, username):
-    subject = "Your LegalAwareKE Admin Login Code"
-    body = (
-        f"Hello {username},\n\n"
-        f"Your LegalAwareKE admin verification code is: {code}\n"
-        f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
-        "If you did not request this login, you can ignore this email.\n"
-    )
-
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = SMTP_USER
-    msg["To"] = recipient
-    msg.set_content(body)
-
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
-        server.send_message(msg)
 
 
 def cleanup_expired_2fa():
@@ -412,8 +459,11 @@ def admin_login():
             flash("Invalid username or password.", "danger")
             return render_template("admin/login.html")
 
-        if not SMTP_USER or not SMTP_PASS or not ADMIN_2FA_EMAIL:
-            flash("2FA email is not configured on the server. Set SMTP_USER, SMTP_PASS and ADMIN_2FA_EMAIL.", "danger")
+        if not smtp_configured():
+            flash(
+                "2FA email is not configured. Set SMTP_USER, SMTP_PASS (or SMTP_PASSWORD), and ADMIN_2FA_EMAIL in your environment or `.env` file.",
+                "danger",
+            )
             return render_template("admin/login.html")
 
         otp_code = f"{secrets.randbelow(1_000_000):06d}"
@@ -427,18 +477,63 @@ def admin_login():
         }
         session["pending_2fa_token"] = token
 
+        admin_email = os.getenv("ADMIN_2FA_EMAIL", "").strip().lstrip("\ufeff")
         try:
-            send_two_factor_email(ADMIN_2FA_EMAIL, otp_code, user["username"])
-        except Exception as e:
+            send_two_factor_email(admin_email, otp_code, user["username"])
+        except smtplib.SMTPAuthenticationError:
+            app.logger.exception("Admin 2FA SMTP authentication failed")
             PENDING_2FA.pop(token, None)
             session.pop("pending_2fa_token", None)
-            if app.debug:
+            flash(
+                "SMTP sign-in was rejected. For Gmail: turn on 2-Step Verification, create an App Password, "
+                "put that 16-character password in SMTP_PASSWORD (not your normal Gmail password), "
+                "and set SMTP_USER to the same Gmail address. Re-copy the password into Render with no spaces or quotes.",
+                "danger",
+            )
+            return render_template("admin/login.html")
+        except (TimeoutError, ConnectionError, OSError):
+            app.logger.exception("Admin 2FA SMTP connection failed")
+            PENDING_2FA.pop(token, None)
+            session.pop("pending_2fa_token", None)
+            hint = (
+                ' On Render: Dashboard → your Web Service → Logs, and search for "Admin 2FA".'
+                if os.getenv("RENDER")
+                else ""
+            )
+            flash(
+                "Could not connect to the SMTP server. Try SMTP_SSL=true with SMTP_PORT=465, "
+                "or confirm SMTP_HOST and SMTP_PORT. This app also retries Gmail on port 465 automatically when 587 fails."
+                + hint,
+                "danger",
+            )
+            return render_template("admin/login.html")
+        except smtplib.SMTPException as e:
+            app.logger.exception("Admin 2FA SMTP error")
+            PENDING_2FA.pop(token, None)
+            session.pop("pending_2fa_token", None)
+            flash(f"Mail server (SMTP) error: {e}", "danger")
+            return render_template("admin/login.html")
+        except Exception as e:
+            app.logger.exception("Admin 2FA email failed")
+            PENDING_2FA.pop(token, None)
+            session.pop("pending_2fa_token", None)
+            show_smtp_error = os.getenv("SHOW_SMTP_ERRORS", "").lower() in ("1", "true", "yes")
+            if app.debug or show_smtp_error:
                 flash(f"Could not send verification email: {e}", "danger")
             else:
-                flash("Could not send verification email. Check SMTP settings and try again.", "danger")
+                hint = (
+                    ' On Render, check Logs for the full traceback (search "Admin 2FA").'
+                    if os.getenv("RENDER")
+                    else ""
+                )
+                flash(
+                    "Could not send verification email. Check SMTP settings, or set SHOW_SMTP_ERRORS=true temporarily to see the exact error."
+                    + hint,
+                    "danger",
+                )
             return render_template("admin/login.html")
 
-        flash(f"Verification code sent to {ADMIN_2FA_EMAIL}. Enter it below.", "info")
+        flash(f"Verification code sent to {admin_email}. Enter it below.", "info")
         return render_template("admin/login.html", two_factor_required=True)
 
     if session.get("pending_2fa_token"):
